@@ -4,11 +4,10 @@ import sympy as sp
 
 from fabpy.constants import students_coefficient
 from fabpy.utils import rounding, student
-
+from fabpy.dataclass import Values
 
 class IndetectError:
-    def __init__(self, data: dict[tuple | list], name: str = 't', roundoff: int = 1, floating_point: str = ','):
-        
+    def __init__(self, data: dict[Values], name: str = 't', roundoff: int = 1, floating_point: str = ','):
         self.data = data
         self.name = name
         self.roundoff = roundoff
@@ -28,7 +27,17 @@ class IndetectError:
         pass
 
     def build(self):
-        pass
+        if not self.check_values:
+            raise ValueError("You can't create formula components because the required numeric values are missing. Try correcting the input data and restarting the calculation function.")
+        else:
+            self.latex_name = fr"\Delta{{ {self.name} }}"
+
+            self.latex_general = fr" "
+            
+            self.latex_values = fr" ".replace('.', self.floating_point)
+            
+            self.latex_result = rounding(self.result, self.roundoff).replace('.', self.floating_point)
+            self.check_latex = True
 
     def latex(self):
         pass
