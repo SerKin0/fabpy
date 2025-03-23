@@ -1,4 +1,6 @@
 from fabpy import InstrumentalError, RandomError, StandardDeviation, AbsoluteError
+from statistics import mean
+from sympy import Symbol
 
 class Values:
     def __init__(self, 
@@ -17,6 +19,9 @@ class Values:
         self.use_instrumental_error = use_instrumental_error 
         self.use_random_error = use_random_error
 
+        # Создаем SymPy-символ для использования в выражениях
+        self.symbol = Symbol(name)
+
         # Инициализируем атрибуты
         self.standard_deviation = None
         self.random_error = None
@@ -30,12 +35,6 @@ class Values:
     def values(self):
         """Getter для values."""
         return self._values
-
-    @values.setter
-    def values(self, new_values):
-        """Setter для values, который обновляет значения и пересчитывает погрешности."""
-        self._values = new_values
-        self._calculate_errors()  # Пересчитываем все при изменении values
 
     def _calculate_errors(self):
         """Метод для вычисления всех погрешностей и отклонений."""
@@ -60,10 +59,20 @@ class Values:
     @property
     def value(self):
         """Среднее значение."""
-        return sum(self._values) / len(self._values) if self._values else 0
+        return mean(self._values) if self._values else 0
+    
+    def value(self, rounding: int = None) -> float:
+        return round(mean(self._values), self.roundoff if rounding is None else rounding)
     
     @property
     def error(self):
         """Возвращает результат абсолютной погрешности."""
         return self.absolute_error.result if self.absolute_error else 0
+    
+    def sp(self, with_error=False):
+        """Возвращает SymPy-объект: либо символ, либо значение с учетом погрешности."""
+        if with_error:
+            # Возвращаем среднее значение ± погрешность как кортеж или выражение
+            return (self.value, self.error)
+        return self.symbol
     
