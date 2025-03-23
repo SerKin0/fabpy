@@ -58,11 +58,11 @@ class Values:
         self.absolute_error = AbsoluteError(random_error=self.random_error, instrumental_error=self.instrumental_error, name=self.name, roundoff=self.roundoff)
 
     @property
-    def value(self):
+    def value(self) -> float:
         """Среднее значение."""
-        return mean(self._values) if self._values else 0
+        return mean(self._values) if self._values else 0.
     
-    def value(self, rounding: int = None) -> float:
+    def round_value(self, rounding: int = None) -> float:
         return round(mean(self._values), self.roundoff if rounding is None else rounding)
     
     @property
@@ -71,7 +71,7 @@ class Values:
         return self.absolute_error.result if self.absolute_error else 0
     
     @property
-    def spv(self):
+    def sp(self):
         """Возвращает SymPy-объект: символ переменной"""
         return self.symbol
     
