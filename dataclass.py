@@ -21,6 +21,7 @@ class Values:
 
         # Создаем SymPy-символ для использования в выражениях
         self.symbol = Symbol(name)
+        self.error_symbol = Symbol(fr"\Delta {{ {name} }}")
 
         # Инициализируем атрибуты
         self.standard_deviation = None
@@ -69,10 +70,13 @@ class Values:
         """Возвращает результат абсолютной погрешности."""
         return self.absolute_error.result if self.absolute_error else 0
     
-    def sp(self, with_error=False):
-        """Возвращает SymPy-объект: либо символ, либо значение с учетом погрешности."""
-        if with_error:
-            # Возвращаем среднее значение ± погрешность как кортеж или выражение
-            return (self.value, self.error)
+    @property
+    def spv(self):
+        """Возвращает SymPy-объект: символ переменной"""
         return self.symbol
+    
+    @property
+    def spe(self):
+        """Возращает SymPy-объект: символ погрешности переменной"""
+        return self.error_symbol
     
