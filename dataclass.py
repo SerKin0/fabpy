@@ -141,7 +141,7 @@ class Formula:
     @property
     def indetect_error(self):
         if self._indetect_error is None:
-            self._indetect_error = IndetectError(self.formula, self.data, self.name, )
+            self._indetect_error = IndetectError(self.formula, self.data, self.name, roundoff=self.roundoff, floating_point=self.floating_point, rounded=self.rounded)
         return self._indetect_error
 
     @property
