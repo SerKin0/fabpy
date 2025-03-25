@@ -1,0 +1,6 @@
+README.md
+setup.py
+fabpy.egg-info/PKG-INFO
+fabpy.egg-info/SOURCES.txt
+fabpy.egg-info/dependency_links.txt
+fabpy.egg-info/top_level.txt

@@ -11,5 +11,5 @@ setup(
     author_email="sergey.skor007@gmail.com",
     url="https://github.com/SerKin0/fabpy",
     install_requires=[],  # Зависимости (например, "requests >= 2.25.1")
-    python_requires=">=3.13",
+    python_requires=">=3.6",
 )
