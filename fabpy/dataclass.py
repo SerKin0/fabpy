@@ -8,6 +8,44 @@ from fabpy.indirect import IndetectError
 
 
 class Values:
+    """Класс для представления и обработки экспериментальных данных с расчетом погрешностей.
+
+    Предоставляет функциональность для:
+    - Хранения измеренных значений
+    - Вычисления различных типов погрешностей (случайной, приборной, абсолютной)
+    - Символьного представления переменной для использования в формулах
+    - Округления результатов согласно заданной точности
+    - Генерации LaTeX-представления переменных и погрешностей
+
+    Attributes:
+        name (str): Имя переменной для использования в формулах
+        _values (list[float]): Список экспериментальных значений
+        roundoff (int): Количество знаков после запятой для округления
+        delta (float): Погрешность измерительного прибора (в тех же единицах, что и измерения)
+        alpha (float): Уровень доверия (по умолчанию 0.95)
+        use_instrumental_error (bool): Флаг использования приборной погрешности
+        use_random_error (bool): Флаг использования случайной погрешности
+        rounded (bool): Флаг округления результатов
+        symbol (Symbol): SymPy символ переменной
+        error_name (str): Имя символа погрешности в LaTeX нотации
+        error_symbol (Symbol): SymPy символ погрешности переменной
+        standard_deviation (StandardDeviation): Объект стандартного отклонения
+        random_error (RandomError): Объект случайной погрешности (если используется)
+        instrumental_error (InstrumentalError): Объект приборной погрешности (если используется)
+        absolute_error (AbsoluteError): Объект абсолютной погрешности
+
+    Methods:
+        _calculate_errors(): Вычисляет все типы погрешностей
+        round_value(rounding=None): Возвращает округленное среднее значение
+        round_error(rounding=None): Возвращает округленную абсолютную погрешность
+
+    Properties:
+        values: Возвращает список экспериментальных значений
+        value: Возвращает среднее значение
+        error: Возвращает абсолютную погрешность
+        sp: Возвращает SymPy символ переменной
+        spe: Возвращает SymPy символ погрешности переменной
+    """
     def __init__(self, 
                  name: str, 
                  values: list | float | int | tuple, 
@@ -17,19 +55,26 @@ class Values:
                  use_instrumental_error: bool = True,
                  use_random_error: bool = True,
                  rounded: bool = False):
-        """Класс для представления и обработки экспериментальных данных с расчетом погрешностей.
-
-        Предоставляет функциональность для хранения измеренных значений, вычисления различных типов погрешностей (случайной, приборной, абсолютной), а также символьное представление переменной для использования в формулах.
+        """Инициализирует объект Values с экспериментальными данными и параметрами обработки.
 
         Args:
-            name (str): Имя переменной, которая будет использоваться при посдтановках в формулах
-            values (list | float | int | tuple): Эксперементальные значения полученные при измерениях
-            delta (float): Погрешность прибора измерения. Единицы измерения должны быть такими же, что и у измерений
-            roundoff (int, optional): . Defaults to 1.
-            alpha (float, optional): _description_. Defaults to 0.95.
-            use_instrumental_error (bool, optional):  Использовать ли при вычислении абсолютной погрешности приборную погрешность. Defaults to True.
-            use_random_error (bool, optional): Использовать ли при вычислении абсолютной погрешности случайную погрешность. Defaults to True.
-            rounded (bool, optional): _description_. Defaults to False.
+            name (str): Имя переменной для использования в формулах (например, "V", "I")
+            values (list | float | int | tuple): Экспериментальные данные. Может быть:
+                - списком значений
+                - одиночным числом (будет преобразовано в список)
+                - кортежем значений
+            delta (float): Погрешность измерительного прибора в тех же единицах, что и измерения
+            roundoff (int, optional): Количество знаков после запятой для округления. По умолчанию 1.
+            alpha (float, optional): Уровень доверия для расчета доверительного интервала. По умолчанию 0.95.
+            use_instrumental_error (bool, optional): Использовать ли приборную погрешность при расчете. 
+                По умолчанию True.
+            use_random_error (bool, optional): Использовать ли случайную погрешность при расчете. 
+                По умолчанию True.
+            rounded (bool, optional): Производить ли округление результатов. По умолчанию False.
+
+        Raises:
+            TypeError: Если values не является списком, кортежем или числом
+            ValueError: Если values пуст или содержит нечисловые значения
         """
         self.name = name
         if isinstance(values, (float, int)):
@@ -49,43 +94,71 @@ class Values:
         self.error_symbol = Symbol(self.error_name)
 
         # Инициализируем атрибуты
-        self.standard_deviation = None
-        self.random_error = None
-        self.instrumental_error = None
-        self.absolute_error = None
+        self._standard_deviation = None
+        self._random_error = None
+        self._instrumental_error = None
+        self._absolute_error = None
 
         # Вычисляем все значения при создании объекта
-        self._calculate_errors()
+        self.calculate_errors()
 
     @property
     def values(self):
         """Getter для values."""
         return self._values
 
-    def _calculate_errors(self):
+    def calculate_errors(self):
         """Метод для вычисления всех погрешностей и отклонений."""
-        # Вычисляем стандартное отклонение
-        self.standard_deviation = StandardDeviation(values=self._values, name=self.name, roundoff=self.roundoff)
+        # Если  
+        if len(self.values) > 1:
+            # Вычисляем стандартное отклонение
+            self._standard_deviation = StandardDeviation(values=self._values, name=self.name, roundoff=self.roundoff)
 
-        # Вычисляем случайную погрешность, если она используется
-        if self.use_random_error:
-            self.random_error = RandomError(values=self._values, name=self.name, roundoff=self.roundoff, standard_deviation=self.standard_deviation)
+            # Вычисляем случайную погрешность, если она используется
+            if self.use_random_error:
+                self._random_error = RandomError(values=self._values, name=self.name, roundoff=self.roundoff, standard_deviation=self._standard_deviation)
+            else:
+                self._random_error = None
         else:
-            self.random_error = None
+            pass
 
         # Вычисляем приборную погрешность, если она используется
         if self.use_instrumental_error:
-            self.instrumental_error = InstrumentalError(delta=self.delta, alpha=self.alpha, name=self.name, roundoff=self.roundoff)
+            self._instrumental_error = InstrumentalError(delta=self.delta, alpha=self.alpha, name=self.name, roundoff=self.roundoff)
         else:
-            self.instrumental_error = None
+            self._instrumental_error = None
 
         # Вычисляем абсолютную погрешность
-        self.absolute_error = AbsoluteError(random_error=self.random_error, instrumental_error=self.instrumental_error, name=self.name, roundoff=self.roundoff)
+        self._absolute_error = AbsoluteError(random_error=self._random_error, instrumental_error=self._instrumental_error, name=self.name, roundoff=self.roundoff)
 
     @property
     def value(self) -> float:
         """Среднее значение."""
         return mean(self._values) if self._values else 0.
+    
+    @property
+    def standard_deviation(self) -> StandardDeviation:
+        if self._standard_deviation is None:
+            self.calculate_errors()
+        return self._standard_deviation
+    
+    @property
+    def random_error(self) -> RandomError:
+        if self._random_error is None:
+            self.calculate_errors()
+        return self._random_error
+    
+    @property
+    def instrumental_error(self) -> InstrumentalError:
+        if self._instrumental_error is None:
+            self.calculate_errors()
+        return self._instrumental_error
+    
+    @property
+    def absolute_error(self) -> AbsoluteError:
+        if self._absolute_error is None:
+            self.calculate_errors()
+        return self._absolute_error
     
     def round_value(self, rounding: int = None) -> float:
         return round(mean(self._values), self.roundoff if rounding is None else rounding)

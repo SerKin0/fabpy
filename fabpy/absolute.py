@@ -24,26 +24,23 @@ class StandardDeviation:
 
         self.average_value = float()
         self.n = int()
-        self._result = float()
+        self._value = float()
 
         self.check_values = False
         self.check_latex = False
 
     @property
-    def result(self) -> float:
+    def value(self) -> float:
         if not self.check_values:
             self.calculation()
-        return self._result
+        return self._value
 
-    @result.setter
-    def result(self, value):
-        self._result = value
 
     def calculation(self) -> None:
         try:
             self.average_value = sum(self.values) / len(self.values)
             self.n = len(self.values)
-            self._result = sqrt(sum([(self.average_value - var)**2 for var in self.values]) / (self.n * (self.n - 1)))
+            self._value = sqrt(sum([(self.average_value - var)**2 for var in self.values]) / (self.n * (self.n - 1)))
             self.check_values = True
 
             self.build()
@@ -61,7 +58,7 @@ class StandardDeviation:
             temp_sum = " + ".join([fr"({rounding(self.average_value, self.roundoff)} - {rounding(var, self.roundoff)})^2" for var in self.values])
             self.latex_values = fr"\sqrt{{ \frac{{ {temp_sum} }}{{ {self.n} \, ({self.n} - 1) }} }}".replace('.', self.floating_point)
             
-            self.latex_result = rounding(self.result, self.roundoff).replace('.', self.floating_point)
+            self.latex_result = rounding(self.value, self.roundoff).replace('.', self.floating_point)
             self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -90,7 +87,7 @@ class RandomError:
         self.floating_point = floating_point
 
         if isinstance(standard_deviation, StandardDeviation):
-            self.standard_deviation = standard_deviation.result  # Используем свойство result
+            self.standard_deviation = standard_deviation.value  # Используем свойство result
         elif isinstance(standard_deviation, (float, int)):
             self.standard_deviation = float(standard_deviation)
         else:
@@ -103,20 +100,16 @@ class RandomError:
 
         self.student_t = float()
         self.n = int()
-        self._result = float()
+        self._value = float()
 
         self.check_values = False
         self.check_latex = False
 
     @property
-    def result(self) -> float:
+    def value(self) -> float:
         if not self.check_values:
             self.calculation()
-        return self._result
-
-    @result.setter
-    def result(self, value):
-        self._result = value
+        return self._value
 
     def calculation(self) -> None:
         self.n = len(self.values)
@@ -125,7 +118,7 @@ class RandomError:
         if not self.student_t:
             raise ValueError(f"There is no definition of the value for such parameters (alpha = {self.alpha}, n = {self.n}).")
         
-        self._result = self.student_t * self.standard_deviation
+        self._value = self.student_t * self.standard_deviation
         self.check_values = True
 
         self.build()
@@ -140,7 +133,7 @@ class RandomError:
             
             self.latex_values = fr"{self.student_t} \cdot {rounding(self.standard_deviation, self.roundoff)}".replace('.', self.floating_point)
             
-            self.latex_result = rounding(self._result, self.roundoff).replace('.', self.floating_point)
+            self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
             self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -175,21 +168,21 @@ class InstrumentalError:
         self.latex_result = str()
 
         self.student_t = float()
-        self._result = float()
+        self._value = float()
 
         self.check_values = False
         self.check_latex = False
 
     @property
-    def result(self) -> float:
+    def value(self) -> float:
         if not self.check_values:
             self.calculation()
-        return self._result
+        return self._value
 
     def calculation(self) -> None:
         self.student_t = student(self.alpha, float('inf'))
 
-        self._result = self.student_t * self.delta / 3
+        self._value = self.student_t * self.delta / 3
         self.check_values = True
 
         self.build()
@@ -204,7 +197,7 @@ class InstrumentalError:
             
             self.latex_values = fr"{self.student_t} \cdot \frac{{ {self.delta} }}{{ 3 }}".replace('.', self.floating_point)
             
-            self.latex_result = rounding(self._result, self.roundoff).replace('.', self.floating_point)
+            self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
             self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -234,7 +227,7 @@ class AbsoluteError:
         if random_error is None:
             self.random_error = 0
         elif isinstance(random_error, RandomError):
-            self.random_error = random_error.result  # Используем свойство result
+            self.random_error = random_error.value  # Используем свойство result
         elif isinstance(random_error, (float, int)):
             self.random_error = float(random_error)
         else:
@@ -243,7 +236,7 @@ class AbsoluteError:
         if instrumental_error is None:
             self.instrumental_error = 0
         elif isinstance(instrumental_error, InstrumentalError):
-            self.instrumental_error = instrumental_error.result  # Используем свойство result
+            self.instrumental_error = instrumental_error.value  # Используем свойство result
         elif isinstance(instrumental_error, (float, int)):
             self.instrumental_error = float(instrumental_error)
         else:
@@ -254,19 +247,19 @@ class AbsoluteError:
         self.latex_values = str()
         self.latex_result = str()
 
-        self._result = float()
+        self._value = float()
 
         self.check_values = False
         self.check_latex = False
 
     @property
-    def result(self) -> float:
+    def value(self) -> float:
         if not self.check_values:
             self.calculation()
-        return self._result
+        return self._r_valueesult
 
     def calculation(self) -> None:
-        self._result = sqrt(self.instrumental_error**2 + self.random_error**2)
+        self._value = sqrt(self.instrumental_error**2 + self.random_error**2)
         self.check_values = True
 
         self.build()
@@ -281,7 +274,7 @@ class AbsoluteError:
             
             self.latex_values = fr"\sqrt{{ {{ {rounding(self.random_error, self.roundoff)} }}^2 + {{ {rounding(self.instrumental_error, self.roundoff)} }}^2 }}".replace('.', self.floating_point)
             
-            self.latex_result = rounding(self._result, self.roundoff).replace('.', self.floating_point)
+            self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
             self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:

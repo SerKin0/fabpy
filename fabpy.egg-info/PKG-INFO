@@ -1,11 +1,11 @@
 Metadata-Version: 2.2
 Name: fabpy
-Version: 0.1
+Version: 0.2
 Summary: Подобии библиотеки на Python для вычисления и оформления погрешностей в LaTeX для физических лабораторных работ.
 Home-page: https://github.com/SerKin0/fabpy
 Author: SerKin0
 Author-email: sergey.skor007@gmail.com
-Requires-Python: >=3.13
+Requires-Python: >=3.6
 Description-Content-Type: text/markdown
 Dynamic: author
 Dynamic: author-email

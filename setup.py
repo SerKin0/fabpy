@@ -10,6 +10,9 @@ setup(
     author="SerKin0",
     author_email="sergey.skor007@gmail.com",
     url="https://github.com/SerKin0/fabpy",
-    install_requires=[],  # Зависимости (например, "requests >= 2.25.1")
+    install_requires=[
+        "numpy>=1.21.0",  # Если нужны другие зависимости
+        "sympy>=1.9",     # Добавляем sympy (минимальная версия 1.9)
+    ],
     python_requires=">=3.6",
 )
