@@ -6,7 +6,12 @@ from fabpy.utils import rounding, student
 
 
 class StandardDeviation:
-    def __init__(self, values: list, name: str = 't', roundoff: int = 1, floating_point: str = ','):
+    def __init__(self, 
+                 values: list, 
+                 name: str = 't', 
+                 roundoff: int = 1, 
+                 floating_point: str = ',',
+                 rounded: bool = False):
         self.values = values
         self.name = name
         self.roundoff = roundoff
@@ -133,7 +138,7 @@ class RandomError:
 
             self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \cdot S_{{ {self.name}, \, n }}".replace('.', self.floating_point)
             
-            self.latex_values = fr"{rounding(self.student_t, self.roundoff)} \cdot {rounding(self.standard_deviation, self.roundoff)}".replace('.', self.floating_point)
+            self.latex_values = fr"{self.student_t} \cdot {rounding(self.standard_deviation, self.roundoff)}".replace('.', self.floating_point)
             
             self.latex_result = rounding(self._result, self.roundoff).replace('.', self.floating_point)
             self.check_latex = True
@@ -225,8 +230,10 @@ class AbsoluteError:
         self.name = name
         self.roundoff = roundoff
         self.floating_point = floating_point
-
-        if isinstance(random_error, RandomError):
+        
+        if random_error is None:
+            self.random_error = 0
+        elif isinstance(random_error, RandomError):
             self.random_error = random_error.result  # Используем свойство result
         elif isinstance(random_error, (float, int)):
             self.random_error = float(random_error)
