@@ -4,10 +4,10 @@ fabpy/__init__.py
 fabpy/absolute.py
 fabpy/constants.py
 fabpy/dataclass.py
-fabpy/fallibility.py
 fabpy/indirect.py
 fabpy/utils.py
 fabpy.egg-info/PKG-INFO
 fabpy.egg-info/SOURCES.txt
 fabpy.egg-info/dependency_links.txt
+fabpy.egg-info/requires.txt
 fabpy.egg-info/top_level.txt
