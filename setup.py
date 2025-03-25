@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="fabpy",
-    version="0.1",
+    version="0.2",
     packages=find_packages(),
     description="Подобии библиотеки на Python для вычисления и оформления погрешностей в LaTeX для физических лабораторных работ.",
     long_description=open("README.md").read(),
