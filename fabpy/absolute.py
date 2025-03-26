@@ -35,6 +35,8 @@ class StandardDeviation:
             self.calculation()
         return self._value
 
+    def round_value(self, rounding: int = None) -> float:
+        return round(self.value, rounding if rounding else self.roundoff)
 
     def calculation(self) -> None:
         try:
@@ -110,6 +112,9 @@ class RandomError:
         if not self.check_values:
             self.calculation()
         return self._value
+    
+    def round_value(self, rounding: int = None) -> float:
+        return round(self.value, rounding if rounding else self.roundoff)
 
     def calculation(self) -> None:
         self.n = len(self.values)
@@ -153,7 +158,6 @@ class RandomError:
 
         return " = ".join(resulting_formula)
         
-
 class InstrumentalError:
     def __init__(self, delta: float, alpha: float = 0.95, name: str = 't', roundoff: int = 1, floating_point: str = ','):
         self.delta = delta
@@ -178,6 +182,9 @@ class InstrumentalError:
         if not self.check_values:
             self.calculation()
         return self._value
+    
+    def round_value(self, rounding: int = None) -> float:
+        return round(self.value, rounding if rounding else self.roundoff)
 
     def calculation(self) -> None:
         self.student_t = student(self.alpha, float('inf'))
@@ -216,7 +223,6 @@ class InstrumentalError:
             resulting_formula.append(self.latex_result)
 
         return " = ".join(resulting_formula)
-
 
 class AbsoluteError:
     def __init__(self, random_error: float | RandomError = None, instrumental_error: float | InstrumentalError = None, name: str = 't', roundoff: int = 1, floating_point: str = ','):
@@ -257,6 +263,10 @@ class AbsoluteError:
         if not self.check_values:
             self.calculation()
         return self._value
+    
+    def round_value(self, rounding: int = None) -> float:
+        return round(self.value, rounding if rounding else self.roundoff)
+    
 
     def calculation(self) -> None:
         self._value = sqrt(self.instrumental_error**2 + self.random_error**2)
