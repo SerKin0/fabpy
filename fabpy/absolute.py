@@ -256,7 +256,7 @@ class AbsoluteError:
     def value(self) -> float:
         if not self.check_values:
             self.calculation()
-        return self._r_valueesult
+        return self._value
 
     def calculation(self) -> None:
         self._value = sqrt(self.instrumental_error**2 + self.random_error**2)
