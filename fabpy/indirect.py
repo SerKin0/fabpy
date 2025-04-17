@@ -138,6 +138,8 @@ class IndetectError:
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)
 
         self.latex_values = latex_str.replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
+
         self.check_latex = True
     
     def latex(self, 
