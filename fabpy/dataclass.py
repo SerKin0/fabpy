@@ -21,6 +21,7 @@ class Values:
                  name: str, 
                  values: list | float | int | tuple, 
                  delta: float,  
+                 unit: str = None,
                  roundoff: int = 1, 
                  alpha: float = 0.95, 
                  use_instrumental_error: bool = True,
@@ -43,6 +44,7 @@ class Values:
             ValueError: Если values пуст или содержит нечисловые значения
         """
         self.name = name
+        self.unit = unit
         # Преобразование входных данных в список
         if isinstance(values, (float, int)):
             self._values = [values]
@@ -76,12 +78,12 @@ class Values:
     def calculate_errors(self) -> None:
         """Вычисляет все типы погрешностей для данных."""
         self._standard_deviation = StandardDeviation(
-            values=self._values, name=self.name, roundoff=self.roundoff, rounded=self.rounded
+            values=self._values, name=self.name, roundoff=self.roundoff, unit=self.unit, rounded=self.rounded
         )
 
         # Расчет случайной погрешности (только если больше одного значения)
         self._random_error = RandomError(
-            values=self._values, name=self.name, roundoff=self.roundoff,
+            values=self._values, name=self.name, roundoff=self.roundoff, unit=self.unit,
             standard_deviation=self._standard_deviation, rounded=self.rounded
         ) if self.use_random_error and len(self._values) > 1 else RandomError(
             values=self._values, name=self.name, roundoff=self.roundoff,
@@ -90,13 +92,13 @@ class Values:
 
         # Расчет приборной погрешности (если используется)
         self._instrumental_error = InstrumentalError(
-            delta=self.delta, alpha=self.alpha, name=self.name,
+            delta=self.delta, alpha=self.alpha, name=self.name, unit=self.unit,
             roundoff=self.roundoff, rounded=self.rounded
         ) if self.use_instrumental_error else None
 
         self._absolute_error = AbsoluteError(
             random_error=self._random_error, instrumental_error=self._instrumental_error,
-            name=self.name, roundoff=self.roundoff, rounded=self.rounded
+            name=self.name, roundoff=self.roundoff, rounded=self.rounded, unit=self.unit
         )
 
     @property
@@ -161,6 +163,7 @@ class Formula:
     def __init__(self,
                  formula: Expr,
                  data: list[Values],
+                 unit: str = None,
                  name: str = 't',
                  roundoff: int = 1, 
                  floating_point: str = ',',
@@ -177,10 +180,15 @@ class Formula:
         """
         self.formula = formula
         self.data = data
+        self.unit = unit
         self.name = name
         self.roundoff = roundoff
         self.floating_point = floating_point
         self.rounded = rounded
+
+        self.symbol = Symbol(name)
+        self.error_name = fr"\Delta {{ {name} }}"
+        self.error_symbol = Symbol(self.error_name)
 
         # LaTeX представления
         self.latex_name = str()
@@ -201,7 +209,7 @@ class Formula:
         """Возвращает объект косвенной погрешности."""
         if self._indetect_error is None:
             self._indetect_error = IndetectError(
-                self.formula, self.data, self.name, roundoff=self.roundoff,
+                self.formula, self.data, self.name, roundoff=self.roundoff, unit=self.unit,
                 floating_point=self.floating_point, rounded=self.rounded
             )
         return self._indetect_error
@@ -213,9 +221,18 @@ class Formula:
             self.calculation()
         return self._value
     
+    @property
+    def error(self) -> float:
+        """Возращает значение косвенной погрешности. """
+        return self.indetect_error.value
+    
     def round_value(self, rounding: int = None) -> float:
         """Возращает округленное значение формулы."""
         return round(self.value, self.roundoff if rounding is None else rounding)
+    
+    def round_error(self, rounding: int = None) -> float:
+        """Возращает округленное значение косвенной погреншности."""
+        return round(self.error, self.roundoff if rounding is None else rounding)
 
     def calculation(self) -> float:
         """Вычисляет значение формулы, подставляя данные."""
@@ -237,7 +254,7 @@ class Formula:
         expr = self.formula.copy()
         # Подстановка округленных значений в выражение
         for var in self.data:
-            symbol_value = Symbol(str(var.round_value() if self.rounded else var.value))
+            symbol_value = Symbol(fr"{var.round_value() if self.rounded else var.value} \, {var.unit}")
             expr = expr.subs(var.sp, symbol_value)
         
         latex_str = latex(expr)
@@ -246,7 +263,7 @@ class Formula:
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)
 
         self.latex_values = latex_str.replace('.', self.floating_point)
-        self.latex_result = rounding(self.value, self.roundoff).replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
 
         self.check_latex = True
 
@@ -281,3 +298,13 @@ class Formula:
             resulting_formula.append(self.latex_result)
 
         return " = ".join(resulting_formula)
+    
+    @property
+    def sp(self) -> Symbol:
+        """Возвращает SymPy символ переменной."""
+        return self.symbol
+    
+    @property
+    def spe(self) -> Symbol:
+        """Возвращает SymPy символ погрешности переменной."""
+        return self.error_symbol

@@ -21,12 +21,14 @@ class IndetectError:
                  formula: Expr, 
                  data: list, 
                  name: str = 't', 
+                 unit: str = None,
                  roundoff: int = 1, 
                  floating_point: str = ',', 
                  rounded: bool = False):
         self.formula = formula
         self.data = data
         self.name = name
+        self.unit = unit
         self.roundoff = roundoff
         self.floating_point = floating_point
         self.rounded = rounded
@@ -80,6 +82,9 @@ class IndetectError:
     
     def build(self) -> None:
         """Строит LaTeX представление вычислений."""
+        from sympy import Pow, latex, Symbol
+        import re
+
         if not self.check_values:
             self.calculation()
 
@@ -88,24 +93,51 @@ class IndetectError:
         
         expr = self.error_formula
         for var in self.data:
+            parenthesized = r"( {{ {value} }} \, \mathrm{{ {unit} }} )"
+            content = r"{{ {value} }} \, \mathrm{{ {unit} }}"
+
+            # Проверяем, находится ли переменная в степени
+            is_in_power = any(
+                isinstance(node, Pow) and var.sp in node.args
+                for node in expr.atoms(Pow)
+            )
+            
+            # Формируем значение переменной
+            value_str = rounding(var.round_value() if self.rounded else var.value, var.roundoff)
+            # Добавляем скобки, если переменная в степени
+            if is_in_power:
+                value_str = parenthesized.format(value=value_str, unit=var.unit)
+            else:
+                value_str = content.format(value=value_str, unit=var.unit)
+            
             # Формируем пары для подстановки значений
             subs_pairs = [
-                (var.sp, Symbol(rounding(var.round_value() if self.rounded else var.value, var.roundoff)))
+                (var.sp, Symbol(value_str))
             ]
             if var.error != 0:
-                subs_pairs.append(
-                    (var.spe, Symbol(rounding(var.round_error() if self.rounded else var.error, var.roundoff)))
+                error_str = rounding(var.round_error() if self.rounded else var.error, var.roundoff)
+                # Погрешность также может быть в степени, проверяем
+                is_error_in_power = any(
+                    isinstance(node, Pow) and var.spe in node.args
+                    for node in expr.atoms(Pow)
                 )
+
+                if is_error_in_power:
+                    error_str = parenthesized.format(value=error_str, unit=var.unit)
+                else:
+                    error_str = content.format(value=error_str, unit=var.unit)
+                subs_pairs.append(
+                    (var.spe, Symbol(error_str))
+                )
+            
             expr = expr.subs(subs_pairs)
 
-        latex_str = latex(expr)
+        latex_str = latex(expr, mul_symbol=r'\cdot')
         # Убираем лишнее форматирование чисел
         latex_str = re.sub(r'\\mathit\{(\d+)\}', r'\1', latex_str)
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)
 
         self.latex_values = latex_str.replace('.', self.floating_point)
-        self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
-
         self.check_latex = True
     
     def latex(self, 

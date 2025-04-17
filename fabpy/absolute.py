@@ -9,7 +9,8 @@ class StandardDeviation:
     """Класс для вычисления стандартного отклонения набора значений."""
     def __init__(self, 
                  values: list, 
-                 name: str = 't', 
+                 name: str = 't',
+                 unit: str = None, 
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):
@@ -24,6 +25,7 @@ class StandardDeviation:
         """
         self.values = values
         self.name = name
+        self.unit = unit
         self.roundoff = roundoff
         self.floating_point = floating_point
         self.rounded = rounded
@@ -79,12 +81,12 @@ class StandardDeviation:
         
         if self.n > 1:
             # Формируем сумму разностей в квадрате
-            temp_sum = " + ".join([fr"({rounding(self.average_value, self.roundoff)} - {rounding(var, self.roundoff)})^2" for var in self.values])
+            temp_sum = " + ".join([fr"({rounding(self.average_value, self.roundoff)} \, \mathrm{{ {self.unit} }} - {rounding(var, self.roundoff)} \, \mathrm{{ {self.unit} }})^2" for var in self.values])
             self.latex_values = fr"\sqrt{{ \frac{{ {temp_sum} }}{{ {self.n} \, ({self.n} - 1) }} }}".replace('.', self.floating_point)
         else:
             self.latex_values = "0"
         
-        self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -118,6 +120,7 @@ class RandomError:
                  values: list, 
                  standard_deviation: StandardDeviation, 
                  alpha: float = 0.95, 
+                 unit: str = None,
                  name: str = 't', 
                  roundoff: int = 1, 
                  floating_point: str = ',',
@@ -135,6 +138,7 @@ class RandomError:
         """
         self.values = values
         self.alpha = alpha
+        self.unit = unit
         self.name = name
         self.roundoff = roundoff
         self.floating_point = floating_point
@@ -191,11 +195,11 @@ class RandomError:
         self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \cdot S_{{ {self.name}, \, n }}"
         
         if self.n > 1:
-            self.latex_values = fr"{self.student_t} \cdot {rounding(self.standard_deviation.value, self.roundoff)}".replace('.', self.floating_point)
+            self.latex_values = fr"{self.student_t} \cdot {rounding(self.standard_deviation.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         else:
             self.latex_values = "0"
         
-        self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm {{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -222,6 +226,7 @@ class InstrumentalError:
                  delta: float, 
                  alpha: float = 0.95, 
                  name: str = 't', 
+                 unit: str = None,
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):
@@ -238,6 +243,7 @@ class InstrumentalError:
         self.delta = delta
         self.alpha = alpha
         self.name = name
+        self.unit = unit
         self.roundoff = roundoff
         self.floating_point = floating_point
         self.rounded = rounded
@@ -279,8 +285,8 @@ class InstrumentalError:
         
         self.latex_name = fr"\Delta \, {{ {self.name} }}_{{\text{{пр}}}}"
         self.latex_general = fr"t_{{ {self.alpha}, \, \infty }} \cdot \frac{{ \delta_{{ {self.name} }} }}{{ 3 }}"
-        self.latex_values = fr"{self.student_t} \cdot \frac{{ {self.delta} }}{{ 3 }}".replace('.', self.floating_point)
-        self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
+        self.latex_values = fr"{self.student_t} \cdot \frac{{ {self.delta} \, \mathrm{{ {self.unit} }} }}{{ 3 }}".replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
@@ -307,6 +313,7 @@ class AbsoluteError:
                  random_error: RandomError, 
                  instrumental_error: InstrumentalError, 
                  name: str = 't', 
+                 unit: str = None,
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):
@@ -322,6 +329,7 @@ class AbsoluteError:
         """
         self.name = name
         self.roundoff = roundoff
+        self.unit = unit 
         self.floating_point = floating_point
         self.rounded = rounded
         
@@ -368,9 +376,9 @@ class AbsoluteError:
         
         random_value = rounding(self.random_error.value, self.roundoff) if self.random_error else "0"
         instr_value = rounding(self.instrumental_error.value, self.roundoff) if self.instrumental_error else "0"
-        self.latex_values = fr"\sqrt{{ {{ {random_value} }}^2 + {{ {instr_value} }}^2 }}".replace('.', self.floating_point)
+        self.latex_values = fr"\sqrt{{ ({{ {random_value} }} \, \mathrm{{ {self.unit} }})^2 + ({{ {instr_value} }} \, \mathrm{{ {self.unit} }})^2 }}".replace('.', self.floating_point)
         
-        self.latex_result = rounding(self._value, self.roundoff).replace('.', self.floating_point)
+        self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 
     def latex(self, print_name: bool = True, print_general: bool = True, print_values: bool = True, print_result: bool = True) -> str:
