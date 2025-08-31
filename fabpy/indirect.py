@@ -131,8 +131,7 @@ class IndetectError:
                 )
             
             expr = expr.subs(subs_pairs)
-
-        latex_str = latex(expr, mul_symbol=r'\times')
+        latex_str = latex(expr, mul_symbol=r'times')
         # Убираем лишнее форматирование чисел
         latex_str = re.sub(r'\\mathit\{(\d+)\}', r'\1', latex_str)
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)

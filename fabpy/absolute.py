@@ -1,7 +1,7 @@
 from math import sqrt
 from dataclasses import dataclass
 
-from fabpy.constants import students_coefficient
+from fabpy.constants import students_coefficient, mul_symbol
 from fabpy.utils import rounding, student
 
 
@@ -192,10 +192,10 @@ class RandomError:
             raise ValueError("You can't create formula components because the required numeric values are missing.")
         
         self.latex_name = fr"\Delta \, {{ {self.name} }}_{{\text{{сл}}}}"
-        self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \times S_{{ {self.name}, \, n }}"
+        self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \{mul_symbol} S_{{ {self.name}, \, n }}"
         
         if self.n > 1:
-            self.latex_values = fr"{self.student_t} \times {rounding(self.standard_deviation.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
+            self.latex_values = fr"{self.student_t} \{mul_symbol} {rounding(self.standard_deviation.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         else:
             self.latex_values = "0"
         
@@ -284,8 +284,8 @@ class InstrumentalError:
             raise ValueError("You can't create formula components because the required numeric values are missing.")
         
         self.latex_name = fr"\Delta \, {{ {self.name} }}_{{\text{{пр}}}}"
-        self.latex_general = fr"t_{{ {self.alpha}, \, \infty }} \times \frac{{ \delta_{{ {self.name} }} }}{{ 3 }}"
-        self.latex_values = fr"{self.student_t} \times \frac{{ {self.delta} \, \mathrm{{ {self.unit} }} }}{{ 3 }}".replace('.', self.floating_point)
+        self.latex_general = fr"t_{{ {self.alpha}, \, \infty }} \{mul_symbol} \frac{{ \delta_{{ {self.name} }} }}{{ 3 }}"
+        self.latex_values = fr"{self.student_t} \{mul_symbol} \frac{{ {self.delta} \, \mathrm{{ {self.unit} }} }}{{ 3 }}".replace('.', self.floating_point)
         self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 

@@ -138,7 +138,7 @@ h__prime = Values(name=f"h'", values=_h__prime, delta=0.1, rounded=True)
 
 
 ```python
-J = (m.sp * g.sp * r.sp**2 * (t_2.sp - t_1.sp)**2) / (h.sp * (1 - t_2.sp/t_1.sp)**2 + h__prime.sp) - m.sp * r.sp**2
+J = (m * g * r**2 * (t_2 - t_1)**2) / (h * (1 - t_2/t_1)**2 + h__prime) - m * r**2
 
 f = Formula(J, [h__prime, R, m, g, r, t_1, t_2, h], 'J', rounded=True)
 ```

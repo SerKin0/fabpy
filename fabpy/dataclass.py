@@ -5,7 +5,7 @@ import re
 from fabpy.absolute import StandardDeviation, RandomError, InstrumentalError, AbsoluteError
 from fabpy.utils import rounding
 from fabpy.indirect import IndetectError
-
+from fabpy.constants import mul_symbol
 
 class Values(Symbol):
     """Класс для представления и обработки экспериментальных данных с расчетом погрешностей.
@@ -21,7 +21,7 @@ class Values(Symbol):
                  name: str, 
                  values: list | float | int | tuple, 
                  delta: float,  
-                 unit: str = None,
+                 unit: str = '',
                  roundoff: int = 1, 
                  alpha: float = 0.95, 
                  use_instrumental_error: bool = True,
@@ -262,7 +262,7 @@ class Formula:
             symbol_value = Symbol(fr"{var.round_value() if self.rounded else var.value} \, {var.unit}")
             expr = expr.subs(var, symbol_value)
         
-        latex_str = latex(expr)
+        latex_str = latex(expr, mul_symbol=mul_symbol)
         # Очистка LaTeX от лишнего форматирования чисел
         latex_str = re.sub(r'\\mathit\{(\d+)\}', r'\1', latex_str)
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)

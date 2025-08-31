@@ -100,3 +100,5 @@ students_coefficient = {0.9: {1: 6.314,
   60: 2.66,
   120: 2.617,
   float('inf'): 2.576}}
+
+mul_symbol='times'
