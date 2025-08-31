@@ -7,7 +7,7 @@ from fabpy.utils import rounding
 from fabpy.indirect import IndetectError
 
 
-class Values:
+class Values(Symbol):
     """Класс для представления и обработки экспериментальных данных с расчетом погрешностей.
 
     Предоставляет функциональность для:
@@ -17,7 +17,7 @@ class Values:
     - Округления результатов согласно заданной точности
     - Генерации LaTeX-представления переменных и погрешностей
     """
-    def __init__(self, 
+    def __new__(cls, 
                  name: str, 
                  values: list | float | int | tuple, 
                  delta: float,  
@@ -26,7 +26,8 @@ class Values:
                  alpha: float = 0.95, 
                  use_instrumental_error: bool = True,
                  use_random_error: bool = True,
-                 rounded: bool = False):
+                 rounded: bool = False,
+                 **assumptions):
         """Инициализирует объект Values с экспериментальными данными и параметрами обработки.
 
         Args:
@@ -43,32 +44,36 @@ class Values:
             TypeError: Если values не является списком, кортежем или числом
             ValueError: Если values пуст или содержит нечисловые значения
         """
-        self.name = name
-        self.unit = unit
+        obj = Symbol.__new__(cls, name, **assumptions)
+
+        obj.name = name
+        obj.unit = unit
         # Преобразование входных данных в список
         if isinstance(values, (float, int)):
-            self._values = [values]
+            obj._values = [values]
         else:
-            self._values = list(values)
-        self.roundoff = roundoff
-        self.delta = delta
-        self.alpha = alpha
-        self.use_instrumental_error = use_instrumental_error 
-        self.use_random_error = use_random_error
-        self.rounded = rounded
+            obj._values = list(values)
+        obj.roundoff = roundoff
+        obj.delta = delta
+        obj.alpha = alpha
+        obj.use_instrumental_error = use_instrumental_error 
+        obj.use_random_error = use_random_error
+        obj.rounded = rounded
 
         # Символы для математических выражений
-        self.symbol = Symbol(name)
-        self.error_name = fr"\Delta {{ {name} }}"
-        self.error_symbol = Symbol(self.error_name)
+        obj.symbol = Symbol(name)
+        obj.error_name = fr"\Delta {{ {name} }}"
+        obj.error_symbol = Symbol(obj.error_name)
 
         # Инициализация объектов погрешностей
-        self._standard_deviation = None
-        self._random_error = None
-        self._instrumental_error = None
-        self._absolute_error = None
+        obj._standard_deviation = None
+        obj._random_error = None
+        obj._instrumental_error = None
+        obj._absolute_error = None
 
-        self.calculate_errors()
+        obj.calculate_errors()
+
+        return obj
 
     @property
     def values(self) -> list:
@@ -163,7 +168,7 @@ class Formula:
     def __init__(self,
                  formula: Expr,
                  data: list[Values],
-                 unit: str = None,
+                 unit: str = '',
                  name: str = 't',
                  roundoff: int = 1, 
                  floating_point: str = ',',
@@ -238,7 +243,7 @@ class Formula:
         """Вычисляет значение формулы, подставляя данные."""
         temp = self.formula
         # Подстановка значений переменных
-        temp = temp.subs({var.sp: var.round_value() if self.rounded else var.value for var in self.data})
+        temp = temp.subs({var: var.round_value() if self.rounded else var.value for var in self.data})
         self._value = float(temp.evalf())
         self.check_values = True
         return self._value
@@ -255,7 +260,7 @@ class Formula:
         # Подстановка округленных значений в выражение
         for var in self.data:
             symbol_value = Symbol(fr"{var.round_value() if self.rounded else var.value} \, {var.unit}")
-            expr = expr.subs(var.sp, symbol_value)
+            expr = expr.subs(var, symbol_value)
         
         latex_str = latex(expr)
         # Очистка LaTeX от лишнего форматирования чисел

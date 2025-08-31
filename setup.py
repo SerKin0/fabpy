@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="fabpy",
-    version="1.0.1",
+    version="1.1.2",
     packages=find_packages(),
     description="Python library for calculating and formatting errors in LaTeX in lab work.",
     long_description=open("README.md", encoding='utf-8-sig').read(),

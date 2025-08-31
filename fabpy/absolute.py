@@ -10,7 +10,7 @@ class StandardDeviation:
     def __init__(self, 
                  values: list, 
                  name: str = 't',
-                 unit: str = None, 
+                 unit: str = '', 
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):
@@ -120,7 +120,7 @@ class RandomError:
                  values: list, 
                  standard_deviation: StandardDeviation, 
                  alpha: float = 0.95, 
-                 unit: str = None,
+                 unit: str = '',
                  name: str = 't', 
                  roundoff: int = 1, 
                  floating_point: str = ',',
@@ -192,10 +192,10 @@ class RandomError:
             raise ValueError("You can't create formula components because the required numeric values are missing.")
         
         self.latex_name = fr"\Delta \, {{ {self.name} }}_{{\text{{сл}}}}"
-        self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \cdot S_{{ {self.name}, \, n }}"
+        self.latex_general = fr"t_{{ {self.alpha}, \, n-1 }} \times S_{{ {self.name}, \, n }}"
         
         if self.n > 1:
-            self.latex_values = fr"{self.student_t} \cdot {rounding(self.standard_deviation.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
+            self.latex_values = fr"{self.student_t} \times {rounding(self.standard_deviation.value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         else:
             self.latex_values = "0"
         
@@ -226,7 +226,7 @@ class InstrumentalError:
                  delta: float, 
                  alpha: float = 0.95, 
                  name: str = 't', 
-                 unit: str = None,
+                 unit: str = '',
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):
@@ -284,8 +284,8 @@ class InstrumentalError:
             raise ValueError("You can't create formula components because the required numeric values are missing.")
         
         self.latex_name = fr"\Delta \, {{ {self.name} }}_{{\text{{пр}}}}"
-        self.latex_general = fr"t_{{ {self.alpha}, \, \infty }} \cdot \frac{{ \delta_{{ {self.name} }} }}{{ 3 }}"
-        self.latex_values = fr"{self.student_t} \cdot \frac{{ {self.delta} \, \mathrm{{ {self.unit} }} }}{{ 3 }}".replace('.', self.floating_point)
+        self.latex_general = fr"t_{{ {self.alpha}, \, \infty }} \times \frac{{ \delta_{{ {self.name} }} }}{{ 3 }}"
+        self.latex_values = fr"{self.student_t} \times \frac{{ {self.delta} \, \mathrm{{ {self.unit} }} }}{{ 3 }}".replace('.', self.floating_point)
         self.latex_result = fr"{rounding(self._value, self.roundoff)} \, \mathrm{{ {self.unit} }}".replace('.', self.floating_point)
         self.check_latex = True
 
@@ -313,7 +313,7 @@ class AbsoluteError:
                  random_error: RandomError, 
                  instrumental_error: InstrumentalError, 
                  name: str = 't', 
-                 unit: str = None,
+                 unit: str = '',
                  roundoff: int = 1, 
                  floating_point: str = ',',
                  rounded: bool = False):

@@ -21,7 +21,7 @@ class IndetectError:
                  formula: Expr, 
                  data: list, 
                  name: str = 't', 
-                 unit: str = None,
+                 unit: str = '',
                  roundoff: int = 1, 
                  floating_point: str = ',', 
                  rounded: bool = False):
@@ -65,7 +65,7 @@ class IndetectError:
         # Собираем слагаемые для формулы погрешности
         for var in self.data:
             if var.error != 0:
-                elements.append(diff(self.formula, var.sp)**2 * var.spe**2)
+                elements.append(diff(self.formula, var)**2 * var.spe**2)
         
         # Формируем итоговую формулу погрешности
         self.error_formula = sqrt(Add(*elements))
@@ -73,7 +73,7 @@ class IndetectError:
         
         # Подставляем значения в формулу
         for var in self.data:
-            temp = temp.subs(var.sp, var.round_value() if self.rounded else var.value)
+            temp = temp.subs(var, var.round_value() if self.rounded else var.value)
             if var.error != 0:
                 temp = temp.subs(var.spe, var.round_error() if self.rounded else var.error)
         
@@ -98,7 +98,7 @@ class IndetectError:
 
             # Проверяем, находится ли переменная в степени
             is_in_power = any(
-                isinstance(node, Pow) and var.sp in node.args
+                isinstance(node, Pow) and var in node.args
                 for node in expr.atoms(Pow)
             )
             
@@ -112,7 +112,7 @@ class IndetectError:
             
             # Формируем пары для подстановки значений
             subs_pairs = [
-                (var.sp, Symbol(value_str))
+                (var, Symbol(value_str))
             ]
             if var.error != 0:
                 error_str = rounding(var.round_error() if self.rounded else var.error, var.roundoff)
@@ -132,7 +132,7 @@ class IndetectError:
             
             expr = expr.subs(subs_pairs)
 
-        latex_str = latex(expr, mul_symbol=r'\cdot')
+        latex_str = latex(expr, mul_symbol=r'\times')
         # Убираем лишнее форматирование чисел
         latex_str = re.sub(r'\\mathit\{(\d+)\}', r'\1', latex_str)
         latex_str = re.sub(r'\\mathrm\{(\d+)\}', r'\1', latex_str)
