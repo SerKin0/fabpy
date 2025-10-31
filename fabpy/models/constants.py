@@ -101,4 +101,6 @@ students_coefficient = {0.9: {1: 6.314,
   120: 2.617,
   float('inf'): 2.576}}
 
-mul_symbol='times'
+mul_symbol_default = r'dot'
+name_default = 't'
+float_point_defualt = ','

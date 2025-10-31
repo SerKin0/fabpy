@@ -1,5 +1,6 @@
 from sympy import Symbol
 from typing import Dict, List, Optional, Union
+from models.utils import rounding
 
 class Variable(Symbol):
     def __new__(cls, name: str, **kwargs):
@@ -118,7 +119,11 @@ class Variable(Symbol):
         if type(self._error) is float:
             return self._error
         
-
+    def round_value(self, round_value: int = None) -> float:
+        return round(self.value, self._roundoff if round_value is None else round_value)
     
     def __repr__(self) -> str:
+        return f"Variable('{self.name}', value={self.value}, error={self.error}, unit='{self.unit}')"
+    
+    def __str__(self) -> str:
         return f"Variable('{self.name}', value={self.value}, error={self.error}, unit='{self.unit}')"

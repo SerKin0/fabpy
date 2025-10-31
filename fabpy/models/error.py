@@ -1,5 +1,5 @@
 from math import sqrt
-from models.constants import students_coefficient, mul_symbol
+from models.constants import students_coefficient, mul_symbol_default, name_default, float_point_defualt
 from models.utils import rounding, student
 
 
@@ -7,15 +7,15 @@ class ErrorCalculation:
     """Базовый класс для вычисления различных типов погрешностей."""
     
     def __init__(self, 
-                 name: str = 't',
+                 name: str = name_default,
                  unit: str = '', 
                  roundoff: int = 1, 
-                 floating_point: str = ',',
+                 floating_point: str = float_point_defualt,
                  rounded: bool = False):
         """Инициализирует базовый объект для вычисления погрешностей.
 
         Args:
-            name (str): Имя переменной (по умолчанию 't')
+            name (str): Имя переменной (по умолчанию default_name)
             unit (str): Единица измерения
             roundoff (int): Количество знаков после запятой (по умолчанию 1)
             floating_point (str): Разделитель десятичной части (по умолчанию ',')
@@ -90,52 +90,39 @@ class ErrorCalculation:
         return str(formatted_value).replace('.', self._floating_point)
 
 
-# class ErrorModel:
-#     def __init__(self, name: str = "t", values: list|tuple|float|int = 0., 
-#                  error: float|int = None, unit: str = "", roundoff: int = 1,
-#                  rounded: bool = True, float_point: str = ','):
-#         """ Модель класса для оброботки погрешностей полученных данных
+class StandardDeviation(ErrorCalculation):
+    def __init__(self, values: list, name: str = name_default, unit: str = '', roundoff: int = 1,
+                 float_point: str = float_point_defualt, rounded: bool = True):
+        super.__init__(name, unit, roundoff, float_point, rounded)
 
-#         Args:
-#             name (str, optional): Имя переменной, которое будет участвовать в формулах (допускается оформление в стиле LaTeX). Defaults to "t".
-#             values (list | tuple | float | int, optional): Значение или значения переменной. Defaults to 0..
-#             error (float | int, optional): Если программа не должна сама вычислять данные по формулам, вы можете задать нужное значение. Defaults to None.
-#             unit (str, optional): Единицы измерения величины (допускается оформление в стиле LaTeX). Defaults to "".
-#             roundoff (int, optional): Количество цифр после запятой. Defaults to 1.
-#             rounded (bool, optional): При вычислениях округлять значение переменной до значащей цифры. Defaults to True.
-#             float_point (str, optional): Символ плавающей точки. Defaults to ','.
-#         """
+        self._values = values
+        self._average_value = 0.
+        self._n = 0
 
-#         self._name = name
-        
-#         if values in (list, tuple):
-#             self._values = values
-#         elif values in (int, float):
-#             self._values = [values]
-#         else:
-#             self._values = []
-#             raise ValueError(f"Параметр 'values' может быть только (list, tuple, float, int), а не {type(values)}.")
-        
-#         self._error = error
-#         self._unit = unit
-#         self._roundoff = roundoff
-#         self._float_point = float_point
+    def calculation(self) -> float:
+        self._n = len(self._values)
 
-#         # Среднее арифметическое значение
-#         self.average_value = None
+        if self._n == 0:
+            self._average_value = 0
+            self._value = 0
+        else:
+            self._average_value = sum(self._values) / len(self._n) 
 
-#     @property
-#     def name(self) -> str:
-#         """Возращает имя переменной."""
-#         return self._name
+            if self._rounded:
+                self._average_value = round(self._average_value, self._roundoff)
+
+            self._value = sqrt(sum([(self._average_value - value)**2 for value in self._values])) / (self._n * (self._n - 1))
+
+        self.check_values = True
+        self.build()
+
+        return self._value
     
-#     def name(self, name: str) -> None:
-#         """Изменение значения переменной 'name'."""
-#         if name is None:
-#             self._name = ""
-#         else:
-#             self._name = name
-    
-#     @property
-#     def values(self) -> list:
-#         return self._values
+    def build(self) -> None:
+        if not self.check_values:
+            raise ValueError("Значения для формул отстутсвуют.")
+        
+        self.latex_name = fr"S_{{ {self._name} }}"
+
+        self.latex_general = fr""
+        return super().build()
