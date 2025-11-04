@@ -1,4 +1,4 @@
-from sympy import Expr, Symbol, latex
+from sympy import Expr, Symbol, latex, Float
 from models.constants import name_default, mul_symbol_default, float_point_defualt, name_default
 from models.utils import rounding, string_russian_to_tex
 from typing import List
@@ -16,14 +16,14 @@ class Calculation:
                  unit: str = '',
                  name: str = name_default,
                  roundoff: int = 1, 
-                 floating_point: str = float_point_defualt,
+                 float_point: str = float_point_defualt,
                  rounded: bool = False):
         
         self._formula = formula
         self._unit = string_russian_to_tex(unit)
         self._name = string_russian_to_tex(name)
         self._roundoff = roundoff
-        self._float_point = floating_point
+        self._float_point = float_point
         self._rounded = rounded
 
         self.symbol = Symbol(name)
@@ -94,7 +94,10 @@ class Calculation:
         self.latex_name = self._name
         self.latex_general = latex(self._formula)
 
-        expr = self._formula.copy()
+        if isinstance(self._formula, Float):
+            expr = Float(float(self._formula))
+        else:
+            expr = self._formula.copy()
 
         def format_value_unit(value: str, unit: str) -> str:
             string = value.replace('.', self._float_point)
@@ -125,7 +128,7 @@ class Calculation:
               print_result: bool = True) -> str:
         
         if not self.check_latex:
-            self.build()            
+            self.build()
         
         resulting_formula = []
         if print_name:

@@ -15,11 +15,13 @@ class Variable(Symbol):
         # Обработка значений
         self._name = string_russian_to_tex(name)
 
-        if isinstance(values, (list, tuple)):
+        
+        if type(values) is list or type(values) is tuple:
             self._values = list(values)
         elif isinstance(values, (int, float)):
             self._values = [values]
         else:
+            print(values, type(values))
             self._values = []
             raise ValueError(f"Параметр 'values' может быть только (list, tuple, float, int), а не {type(values)}.")
         

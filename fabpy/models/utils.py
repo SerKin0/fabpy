@@ -8,7 +8,7 @@ def student(alpha: float, n: int) -> int:
     if alpha in students_coefficient.keys():
         values = students_coefficient.get(alpha)
         return values.get(n)
-    return None
+    return 1
 
 def string_russian_to_tex(string: str, command: str = "text") -> str:
     """ Преобразует строку в формат, подходящий для импорта в формулу LaTeX """
