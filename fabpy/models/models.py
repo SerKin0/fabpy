@@ -2,6 +2,7 @@ from sympy import Symbol
 from typing import Dict, List, Optional, Union
 
 from models.utils import string_russian_to_tex
+from models.constants import name_default, float_point_defualt
 
 class Variable(Symbol):
     def __new__(cls, name: str, **kwargs):
@@ -9,8 +10,8 @@ class Variable(Symbol):
         obj = Symbol.__new__(cls, name)
         return obj
 
-    def __init__(self, name: str = "t", values: Union[list, tuple, float, int] = 0., unit: str = "", 
-                 roundoff: int = 1, rounded: bool = True, float_point: str = ','):
+    def __init__(self, name: str = name_default, values: Union[list, tuple, float, int] = 0., unit: str = "", 
+                 roundoff: int = 1, rounded: bool = True, float_point: str = float_point_defualt):
         
         # Обработка значений
         self._name = string_russian_to_tex(name)
@@ -62,7 +63,7 @@ class Variable(Symbol):
     def name(self, new_name: str) -> None:
         """Изменяет имя переменной на новое"""
         if not new_name:
-            self._name = "t"
+            self._name = name_default
         else:
             self._name = string_russian_to_tex(new_name)
     
@@ -94,7 +95,7 @@ class Variable(Symbol):
     def float_point(self, new_float_point: str) -> None:
         """Изменяем символ плавающей точки"""
         if (not new_float_point) or (new_float_point == ''):
-            self._float_point = ','
+            self._float_point = float_point_defualt
         else:
             self._float_point = new_float_point
 

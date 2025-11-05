@@ -1,4 +1,4 @@
-from sympy import Expr, Symbol, latex, Float
+from sympy import Expr, Symbol, latex, Float, Pow
 from models.constants import name_default, mul_symbol_default, float_point_defualt, name_default
 from models.utils import rounding, string_russian_to_tex
 from typing import List
@@ -99,17 +99,26 @@ class Calculation:
         else:
             expr = self._formula.copy()
 
-        def format_value_unit(value: str, unit: str) -> str:
-            string = value.replace('.', self._float_point)
-            if unit:
-                string += fr"~\mathrm{{ {unit} }}"
-            return string
-
         for var in self.variables:
-            value_str = (rounding(var.value, var.roundoff)).replace('.', self._float_point)
-            symbol_replace = format_value_unit(value_str, var.unit)
-            temp_symbol = Symbol(symbol_replace)
-            expr = expr.subs(var, temp_symbol)
+            value_str = rounding(var.value, var.roundoff).replace('.', self._float_point)
+            
+            # Проверяем, нужны ли скобки для этой переменной
+            needs_brackets = False
+            for pow_expr in self._formula.atoms(Pow):
+                if pow_expr.base == var and pow_expr.exp != 1:
+                    needs_brackets = True
+                    break
+            
+            # Формируем подстановочную строку
+            if var.unit:
+                if needs_brackets:
+                    sub_str = fr"\left({value_str}~\mathrm{{{var.unit}}}\right)"
+                else:
+                    sub_str = fr"{value_str}~\mathrm{{{var.unit}}}"
+            else:
+                sub_str = value_str
+                
+            expr = expr.subs(var, Symbol(sub_str))
         
         latex_str = latex(expr, mul_symbol=mul_symbol_default)
         latex_str = re.sub(r'\\mathit\{(\d+)\}', r'\1', latex_str)
@@ -117,8 +126,13 @@ class Calculation:
 
         self.latex_values = latex_str.replace('.', self._float_point)
 
-        result_value_str = rounding(self.value, self._roundoff)
-        self.latex_result = format_value_unit(result_value_str, self._unit)
+        # Форматируем конечный результат
+        result_value_str = rounding(self.value, self._roundoff).replace('.', self._float_point)
+        if self._unit:
+            self.latex_result = f"{result_value_str}~\\mathrm{{{self._unit}}}"
+        else:
+            self.latex_result = result_value_str
+        
         self.check_latex = True
 
     def latex(self, 

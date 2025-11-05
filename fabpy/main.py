@@ -17,7 +17,7 @@ def printex(string) -> None:
 printmd(v.standart_deviation.latex())
 printmd(v.random.latex())
 printmd(v.instrumental.latex())
-v.instrumental = 1
+v.instrumental = 10
 printmd(v.instrumental.latex())
 printmd(v.absolute.latex())
     
