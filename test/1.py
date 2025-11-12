@@ -1,6 +1,6 @@
-from values import Variable, Values
-from calculation import Calculation
-from formula import Formula
+from fabpy.values import Variable, Values
+from fabpy.calculation import Calculation
+from fabpy.formula import Formula
 
 # t = Values('t', values=[1.2], unit=r'с', error=0.05, roundoff=1, delta=0.1)
 v = Values('v', values=[10.5, 10.7, 10.6], unit=r'\frac{м}{с}', 

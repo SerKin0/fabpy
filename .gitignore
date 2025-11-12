@@ -1,4 +1,6 @@
 venv
 setup.py
-test/
-fabpy/models/__pycache__/
+fabpy/__pycache__/
+./test
+./fabpy/main.py
+id

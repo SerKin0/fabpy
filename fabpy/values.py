@@ -1,18 +1,18 @@
 from sympy import sqrt, Float
 from typing import Optional, Union
 
-from models.utils import student
-from models.calculation import Calculation
-from models.models import Variable
-from models.constants import name_default
+from utils import student
+from calculation import Calculation
+from models import Variable
+from constants import name_default, float_point_defualt
 
 
 class Values(Variable):
     def __init__(self, name: str = name_default, values: Union[list, tuple, float, int] = 0., 
                  error: Optional[float] = None, unit: str = "", roundoff: int = 1, rounded: bool = True, 
-                 float_point: str = ',', alpha: float = 0.95, delta: float = 0):
+                 float_point: str = float_point_defualt, alpha: float = 0.95, delta: float = 0):
         super().__init__(name, values, unit, roundoff, rounded, float_point)
-        self._error = self.__format_error(error)
+        self._error = self._format_error(error)
         self._alpha = alpha
         self._delta = delta
 
@@ -21,7 +21,7 @@ class Values(Variable):
         self._instrumental = None
         self._absolute = None
 
-    def __format_error(self, error: float, type_error: str = None) -> Calculation:
+    def _format_error(self, error: float, type_error: str = None) -> Calculation:
         if error is None:
             return None
         
@@ -29,23 +29,26 @@ class Values(Variable):
         temp_name = fr"\Delta {self.name}_\text{{ {type_error} }}" if type_error is not None else fr"\Delta {self.name}"
         return Calculation(
             name=temp_name, 
-            formula=Float(error),  # передаем число напрямую
+            formula=Float(error),
             unit=self.unit, 
             rounded=self.rounded, 
             roundoff=self.roundoff, 
             float_point=self.float_point
         )
-
-    @property
-    def error(self) -> Calculation:
-        if self._error is None:
-            return self.__format_error(self._error)
-        else:
-            return self._error
+    
+    def __format_standard_deviation(self, deviation: float) -> Calculation:
+        if deviation is None:
+            return None
         
-    @error.setter
-    def error(self, new_error: float = None) -> None:
-        self._error = self.__format_error(new_error)
+        temp_name = fr"\Delta S_\text{{ {self.name} }}"
+        return Calculation(
+            name=temp_name, 
+            formula=Float(deviation),  # передаем число напрямую
+            unit=self.unit, 
+            rounded=self.rounded, 
+            roundoff=self.roundoff, 
+            float_point=self.float_point
+        )
 
     @property
     def standart_deviation(self) -> Calculation:
@@ -63,6 +66,12 @@ class Values(Variable):
 
         return self._standart_deviation
     
+    @standart_deviation.setter
+    def standart_deviation(self, new_standart_deviation: Union[float,int]) -> None:
+        self._standart_deviation = self.__format_standard_deviation(new_standart_deviation)
+        self._random = None
+        self._absolute = None
+
     @property
     def random(self) -> Calculation:
         if self._random is None:
@@ -73,7 +82,8 @@ class Values(Variable):
         
     @random.setter
     def random(self, new_random) -> None:
-        self._random = self.__format_error(new_random)
+        self._random = self._format_error(new_random, 'сл')
+        self._absolute = None
 
     @property
     def instrumental(self) -> Calculation:
@@ -85,8 +95,7 @@ class Values(Variable):
     
     @instrumental.setter
     def instrumental(self, new_instrumental: float) -> None:
-        self._instrumental = self.__format_error(new_instrumental, "пр")
-        # Сбрасываем абсолютную погрешность для пересчета
+        self._instrumental = self._format_error(new_instrumental, "пр")
         self._absolute = None
 
     @property
@@ -94,5 +103,36 @@ class Values(Variable):
         if self._absolute is None:
             error_random = Variable(name=self.random._name, values=self.random.value, unit=self.random._unit, roundoff=self.random._roundoff, rounded=self.random._rounded)
             error_instrumental = Variable(name=self.instrumental._name, values=self.instrumental.value, unit=self.instrumental._unit, roundoff=self.instrumental._roundoff, rounded=self.instrumental._rounded)
-            self._absolute =Calculation(sqrt(error_instrumental**2 + error_random**2), unit=self.unit, name=fr'\Delta {self.name}', roundoff=self.roundoff, rounded=self.rounded, float_point=self.float_point)
+            self._absolute = Calculation(sqrt(error_instrumental**2 + error_random**2), unit=self.unit, name=fr'\Delta {self.name}', roundoff=self.roundoff, rounded=self.rounded, float_point=self.float_point)
         return self._absolute
+    
+    @property
+    def error(self) -> Calculation:
+        if self._error is None:
+            print(self._error)
+            return self._format_error(self._error)
+        else:
+            return self.absolute
+        
+    @absolute.setter
+    @error.setter
+    def absolute(self, new_absolute: Union[float, int]) -> None:
+        self._absolute = self._format_error(new_absolute)
+        self._error = self._absolute
+
+    def to_variable(self) -> Variable:
+        """Возращает класс в формате Variable"""
+        return Variable(
+            name=self.name,
+            values=self.value,
+            unit=self.unit,
+            roundoff=self.roundoff,
+            rounded=self.rounded,
+            float_point=self.float_point
+            )
+        
+    def __repr__(self) -> str:
+        return f"Values({self.name=}, {self.value=}, {self.unit=}, {self.error=}, {self.absolute.round_value()=})"
+    
+    def __str__(self) -> str:
+        return f"Values({self.name=}, {self.value=}, {self.unit=}, {self.error=}, {self.absolute.round_value()=})"

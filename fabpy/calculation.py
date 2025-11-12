@@ -1,13 +1,11 @@
 from sympy import Expr, Symbol, latex, Float, Pow
-from models.constants import name_default, mul_symbol_default, float_point_defualt, name_default
-from models.utils import rounding, string_russian_to_tex
 from typing import List
 import re
 
-from sympy import Symbol
-from typing import Union
-from models.utils import string_russian_to_tex
-from models.models import Variable
+from utils import string_russian_to_tex
+from models import Variable
+from constants import name_default, mul_symbol_default, float_point_defualt, name_default
+from utils import rounding, string_russian_to_tex
 
 class Calculation:
     """Класс для вычисления значения формулы и построения её LaTeX-представления."""
@@ -42,13 +40,11 @@ class Calculation:
         self.check_values = False
         self.check_latex = False
 
-        self.calculation()
-
     def _extract_variables(self) -> Variable:
         vars = []
 
         def collect_variable(form: Expr):
-            if type(form) is Variable:
+            if type(form) is Variable or type(form).__name__ == 'Values':
                 vars.append(form)
             elif hasattr(form, 'args'):
                 for argument in form.args:
@@ -66,13 +62,13 @@ class Calculation:
     @property
     def value(self) -> float:
         if self._value is None:
-            self.calculation()
+            self._calculation()
         return self._value
 
     def round_value(self, rounding: int = None) -> float:
         return round(self.value, self._roundoff if rounding is None else rounding)
     
-    def calculation(self) -> float:
+    def _calculation(self) -> float:
         temp = self._formula
         sub = {}
         
@@ -87,9 +83,9 @@ class Calculation:
         self.check_values = True
         return self._value
     
-    def build(self) -> None:
+    def _build(self) -> None:
         if not self.check_values:
-            self.calculation()
+            self._calculation()
         
         self.latex_name = self._name
         self.latex_general = latex(self._formula)
@@ -142,7 +138,7 @@ class Calculation:
               print_result: bool = True) -> str:
         
         if not self.check_latex:
-            self.build()
+            self._build()
         
         resulting_formula = []
         if print_name:
@@ -155,6 +151,16 @@ class Calculation:
             resulting_formula.append(self.latex_result)
 
         return " = ".join(resulting_formula)
+    
+    def to_variable(self) -> Variable:
+        return Variable(
+            name=self._name,
+            values=self.value,
+            unit=self._unit,
+            rounded=self._rounded,
+            roundoff=self._roundoff,
+            float_point=self._float_point
+        )
     
     def __str__(self):
         return f"{self._name} {self._formula}"

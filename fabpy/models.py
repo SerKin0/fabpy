@@ -1,8 +1,8 @@
 from sympy import Symbol
 from typing import Dict, List, Optional, Union
 
-from models.utils import string_russian_to_tex
-from models.constants import name_default, float_point_defualt
+from utils import string_russian_to_tex
+from constants import name_default, float_point_defualt
 
 class Variable(Symbol):
     def __new__(cls, name: str, **kwargs):
@@ -59,6 +59,17 @@ class Variable(Symbol):
         """Возращает символ плавающей точки"""
         return self._float_point
     
+    @property
+    def values(self) -> list[float]:
+        return self._values
+    
+    @values.setter
+    def values(self, new_values: List[float]) -> None:
+        if len(new_values) < 1:
+            raise ValueError("Список новых данных не может быть пустым")
+        self._values = new_values
+        self.average_value = self._calculate_average()
+    
     @name.setter
     def name(self, new_name: str) -> None:
         """Изменяет имя переменной на новое"""
@@ -94,7 +105,7 @@ class Variable(Symbol):
     @float_point.setter
     def float_point(self, new_float_point: str) -> None:
         """Изменяем символ плавающей точки"""
-        if (not new_float_point) or (new_float_point == ''):
+        if not new_float_point:
             self._float_point = float_point_defualt
         else:
             self._float_point = new_float_point
@@ -114,7 +125,7 @@ class Variable(Symbol):
         return round(self.value, self._roundoff if round_value is None else round_value)
     
     def __repr__(self) -> str:
-        return f"Variable('{self.name}', value={self.value}, unit='{self.unit}')"
+        return f"Variable('{self.name=}', {self.value=}, '{self.unit=}')"
     
     def __str__(self) -> str:
-        return f"Variable('{self.name}', value={self.value}, unit='{self.unit}')"
+        return f"Variable('{self.name=}', {self.value=}, '{self.unit}')"

@@ -1,4 +1,4 @@
-from models.constants import students_coefficient
+from constants import students_coefficient
 
 def rounding(number: float, roundoff: int) -> str:
     return f"{number:.{roundoff}f}"
